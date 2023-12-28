@@ -54,20 +54,25 @@ export default function App() {
   
   const detectImage = async (capturedImage) => {
     setLoading(true);
-    
+    let base64Prefix = "data:image/png;base64,";
+
     // TODO: Backend communication
     //const base64RegExp = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$/;
     //const isBase64 = (str) => base64RegExp.test(str);
     //console.log("Base64?" + isBase64(capturedImage.base64));
     //const imageData = `data:image/jpg;base64,${capturedImage.base64}`;
-    const imageData = capturedImage.base64;
+    
+    let imageData = capturedImage.base64;
+    if (imageData.startsWith(base64Prefix)) {
+      imageData = imageData.substring(base64Prefix.length);
+    }
 
     // Send POST request to backend
     // TODO: Change address
     try {
-
-      const rawResponse = await fetch('http://your-backend-url/process-image', {
+      const rawResponse = await fetch(`http://192.168.0.53:5000/process-image`, {
         method: 'POST',
+       // mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -81,21 +86,15 @@ export default function App() {
         return;
       }
 
-      const {originalImageEnc, improvedImageEnc} = await rawResponse.json();
+      const { originalImageEnc, enhancedImageEnc } = await rawResponse.json();
+
       // Convert base64 images to objects to be used for <Image /> tags
-      const originalImage = { uri: `data:image/jpg;base64,${originalImageEnc}` };
-      const improvedImage = { uri: `data:image/jpg;base64,${improvedImageEnc}` };
-      setReceivedImages([originalImage, improvedImage]);
+      const originalImage = { uri: base64Prefix + originalImageEnc };
+      const enhancedImage = { uri: base64Prefix + enhancedImageEnc };
+
+      setReceivedImages([originalImage, enhancedImage]);
       setLoading(false);
       setShowPreview(true);
-
-      // TODO: Remove simulate backend communication
-      // setTimeout(() => {
-      //   const fakeBackendResponse = [require('./assets/images/original-image.png'), require('./assets/images/improved-image.png')];
-      //   setReceivedImages(fakeBackendResponse);
-      //   setLoading(false);
-      //   setShowPreview(true);
-      // }, 3000);
 
     } catch( e ) {
       alert("Could not connect to server " + e);
