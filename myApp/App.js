@@ -6,7 +6,6 @@ import { useWindowDimensions } from "react-native";
 
 export default function App() {
   const [hasCameraPermission, setHasCameraPermission] = useState();
-  const [capturedImage, setCapturedImage] = useState();
   const [receivedImages, setReceivedImages] = useState();
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -48,30 +47,64 @@ export default function App() {
       exif: false
     };
 
-    const photo = await cameraRef.current.takePictureAsync(options);
-    setCapturedImage(photo);
-
-    // Initiate Backend communication
-    detectImage();
+    const capturedImage = await cameraRef.current.takePictureAsync(options);
+    detectImage(capturedImage); // Initiate Backend communication
   };
 
-  const detectImage = () => {
+  
+  const detectImage = async (capturedImage) => {
     setLoading(true);
     
     // TODO: Backend communication
+    //const base64RegExp = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$/;
+    //const isBase64 = (str) => base64RegExp.test(str);
+    //console.log("Base64?" + isBase64(capturedImage.base64));
+    //const imageData = `data:image/jpg;base64,${capturedImage.base64}`;
+    const imageData = capturedImage.base64;
 
-    // TODO: Remove simulate backend communication
-    setTimeout(() => {
-      const fakeBackendResponse = [require('./assets/images/original-image.png'), require('./assets/images/improved-image.png')];
-      setReceivedImages(fakeBackendResponse);
+    // Send POST request to backend
+    // TODO: Change address
+    try {
+
+      const rawResponse = await fetch('http://your-backend-url/process-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageData }),
+      });
+
+      if (!rawResponse.ok) {
+        const errorMessage = await rawResponse.text();
+        alert(errorMessage);
+        resetCamera();
+        return;
+      }
+
+      const {originalImageEnc, improvedImageEnc} = await rawResponse.json();
+      // Convert base64 images to objects to be used for <Image /> tags
+      const originalImage = { uri: `data:image/jpg;base64,${originalImageEnc}` };
+      const improvedImage = { uri: `data:image/jpg;base64,${improvedImageEnc}` };
+      setReceivedImages([originalImage, improvedImage]);
       setLoading(false);
       setShowPreview(true);
-    }, 3000);
+
+      // TODO: Remove simulate backend communication
+      // setTimeout(() => {
+      //   const fakeBackendResponse = [require('./assets/images/original-image.png'), require('./assets/images/improved-image.png')];
+      //   setReceivedImages(fakeBackendResponse);
+      //   setLoading(false);
+      //   setShowPreview(true);
+      // }, 3000);
+
+    } catch( e ) {
+      alert("Could not connect to server " + e);
+      resetCamera();
+    }
   }
 
   // Return to camera view when called
   const resetCamera = () => {
-    setCapturedImage(undefined);
     setReceivedImages(undefined);
     setLoading(false);
     setShowPreview(false);
