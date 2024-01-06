@@ -55,7 +55,6 @@ def processImage():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 def enhanceImage(image):
     # Convert image to fitting format for environment
     image_converted = image.resize((image_width, image_height))
@@ -76,10 +75,10 @@ def enhanceImage(image):
 
 def detectImage(original_image, enhanced_image):
     results = yolo([original_image, enhanced_image])
-    results.save(save_dir="./test", exist_ok=True)
+    results.save(save_dir=temp_dir, exist_ok=True)
 
-    original_image_labeled = Image.open("./test/image0.jpg") 
-    enhanced_image_labeled = Image.open("./test/image1.jpg") 
+    original_image_labeled = Image.open(os.path.join(temp_dir, "image0.jpg")) 
+    enhanced_image_labeled = Image.open(os.path.join(temp_dir, "image1.jpg"))
 
     return original_image_labeled, enhanced_image_labeled
 
