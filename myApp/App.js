@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { Camera } from 'expo-camera';
 import { useWindowDimensions } from "react-native";
 
@@ -10,7 +10,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showImproved, setShowImproved] = useState(false);
-
+  const [showSettings, setShowSettings] = useState(true);
+  const [inputIpAddress, setInputIpAddress] = useState('');
+  const [ipAddress, setIpAddress] = useState('');
 
   const { width } = useWindowDimensions();
 
@@ -39,6 +41,20 @@ export default function App() {
     );
   }
 
+
+  const handleIpChange = () => {
+    const ipv4WithOptionalPortRegex = /^((?:[0-9]{1,3}\.){3}[0-9]{1,3})(?::([0-9]+))?$/;
+
+    const match = inputIpAddress.match(ipv4WithOptionalPortRegex);
+
+    if (!match) {
+      alert("Incorrect IP-address");
+    } else {
+      setIpAddress(inputIpAddress);
+      setShowSettings(false);
+    }
+  };
+
   // Function to take a picture
   const takePicture = async () => {
     let options = {
@@ -62,9 +78,8 @@ export default function App() {
     }
 
     // Send POST request to backend
-    // TODO: Change address
     try {
-      const rawResponse = await fetch(`http://192.168.0.53:5000/process-image`, {
+      const rawResponse = await fetch(`http://${ipAddress}/process-image`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,6 +132,27 @@ export default function App() {
       </View>
     );
   } 
+  else if(showSettings) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.settings}>
+          <Text>Enter Server IP Address:</Text>
+          <TextInput
+            style={{ borderBottomWidth: 1, marginBottom: 10 }}
+            placeholder="Enter IP address"
+            value={inputIpAddress}
+            onChangeText={(text) => setInputIpAddress(text)}
+          />
+
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <TouchableOpacity onPress={handleIpChange}>
+              <Text style={{ color: 'blue' }}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
   else if(showPreview) {
     const height = Math.round((width * 16) / 9);
 
@@ -137,7 +173,7 @@ export default function App() {
     const height = Math.round((width * 16) / 9);
 
     return (
-      <Camera ratio="16:9" style={[styles.camera, {height: height, width: "100%"}]} ref={cameraRef}>
+      <Camera ratio="16:9" style={[styles.camera, { height: height, width: "100%" }]} ref={cameraRef}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
             <View style={styles.captureInnerButton} />
@@ -150,6 +186,11 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  settings: {
+    padding: 20,
+    borderRadius: 10,
+    width: "80%", // Adjust the width as needed
+  },
   camera: {
     flex: 1,
     justifyContent: 'flex-end',
