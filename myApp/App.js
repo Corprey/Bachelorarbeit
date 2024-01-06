@@ -55,12 +55,6 @@ export default function App() {
   const detectImage = async (capturedImage) => {
     setLoading(true);
     let base64Prefix = "data:image/png;base64,";
-
-    // TODO: Backend communication
-    //const base64RegExp = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$/;
-    //const isBase64 = (str) => base64RegExp.test(str);
-    //console.log("Base64?" + isBase64(capturedImage.base64));
-    //const imageData = `data:image/jpg;base64,${capturedImage.base64}`;
     
     let imageData = capturedImage.base64;
     if (imageData.startsWith(base64Prefix)) {
@@ -72,7 +66,6 @@ export default function App() {
     try {
       const rawResponse = await fetch(`http://192.168.0.53:5000/process-image`, {
         method: 'POST',
-       // mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
