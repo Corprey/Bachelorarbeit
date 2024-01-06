@@ -125,9 +125,11 @@ export default function App() {
     );
   } 
   else if(showPreview) {
+    const height = Math.round((width * 16) / 9);
+
     return (
       <View style={styles.container}>
-        <Image source={showImproved ? receivedImages[1] : receivedImages[0]} style={styles.image} />
+        <Image source={showImproved ? receivedImages[1] : receivedImages[0]} style={[styles.image, { height: height, width: "100%" }]} />
         <Text style={styles.imageMode}> {showImproved ? ("Improved Image") : ("Original Image")} </Text>
         <TouchableOpacity onPress={toggleImageDisplay} style={styles.toggleButton}>
           <Text>Switch Mode</Text>
@@ -184,7 +186,6 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: '100%',
   },
   imageMode: {
     position: 'absolute',
