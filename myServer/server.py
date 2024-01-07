@@ -23,7 +23,6 @@ model = SAC.load(agent_path)
 print("Load YOLOv5 Detector ...")
 yolo = torch.hub.load('ultralytics/yolov5', 'custom', yolo_model_path) 
 
-print("Starting Server...")
 app = Flask(__name__)
 CORS(app)
 
@@ -85,4 +84,5 @@ def detectImage(original_image, enhanced_image):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("Starting Server...")
+    app.run(host='0.0.0.0', port=5000, debug=False)
